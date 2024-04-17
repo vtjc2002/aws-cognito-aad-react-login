@@ -37,7 +37,6 @@ function App() {
       switch (payload.event) {
         case "signInWithRedirect":
           getUser();
-          getUserAccessToken();
           break;
         case "signInWithRedirect_failure":
           setError("An error has occurred during the OAuth flow.");
@@ -49,7 +48,6 @@ function App() {
     });
 
     getUser();
-    getUserAccessToken();
 
     return unsubscribe;
   }, []);
@@ -58,6 +56,7 @@ function App() {
     try {
       const currentUser = await getCurrentUser();
       setUser(currentUser);
+      await getUserAccessToken();
     } catch (error) {
       console.error(error);
       console.log("Not signed in");
@@ -66,7 +65,9 @@ function App() {
 
   const getUserAccessToken = async () => {
     try {
-      const localkey = `CognitoIdentityServiceProvider.${cognitoConfig.userPoolWebClientId}.${user?.username}.accessToken`;
+      const currentAuthUserKey = `CognitoIdentityServiceProvider.${cognitoConfig.userPoolClientId}.LastAuthUser`
+      const currentAuthUser = localStorage.getItem(currentAuthUserKey);
+      const localkey = `CognitoIdentityServiceProvider.${cognitoConfig.userPoolClientId}.${currentAuthUser}.accessToken`;
       const currentUserAccessToken = localStorage.getItem(localkey);
       setUserToken(currentUserAccessToken);
     } catch (error) {
